@@ -1,0 +1,39 @@
+{
+  "name": "lconf",
+  "version": "0.0.1",
+  "description": "parse and normalize local configuration files",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bengreenier/lconf.git"
+  },
+  "keywords": [
+    "config",
+    "local",
+    "parse",
+    "lconf"
+  ],
+  "author": {
+    "name": "Ben Greenier",
+    "email": "ben+npm@bengreenier.com",
+    "homepage": "bengreenier.com"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/bengreenier/lconf/blob/master/LICENSE"
+  },
+  "bugs": {
+    "url": "https://github.com/bengreenier/lconf/issues"
+  },
+  "homepage": "https://github.com/bengreenier/lconf",
+  "devDependencies": {
+    "mocha": "^2.1.0"
+  },
+  "dependencies": {
+    "js-yaml": "^3.2.5"
+  }
+}
