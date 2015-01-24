@@ -4,8 +4,7 @@
   "description": "parse local configuration files of various types",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "start": "index.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
