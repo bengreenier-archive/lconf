@@ -1,7 +1,7 @@
 {
   "name": "lconf",
   "version": "0.0.1",
-  "description": "parse and normalize local configuration files",
+  "description": "parse local configuration files of various types",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
