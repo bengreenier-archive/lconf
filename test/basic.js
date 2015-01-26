@@ -1,6 +1,7 @@
 var assert = require("assert");
 var lconf = require('../index');
 var fs = require('fs');
+var pathResolver = require('path-resolver').sync;
 
 describe('lconf', function() {
   it('should return an instance of Parser', function() {
@@ -20,8 +21,8 @@ describe('Parser', function() {
     } catch (e){}
     
     fs.writeFileSync('_test.yaml', "invoice: 34843\r\ndate   : true\r\nbill-to: ben");
-    fs.writeFileSync('_test.json', '{"invoice": 34843, "date":true,"bill-to":"ben"}');
-    fs.writeFileSync('_test.js', 'module.exports = {"invoice": 34843, "date":true,"bill-to":"ben"};');
+    fs.writeFileSync('_test.json', '{"invoice": 34843, "date":false,"bill-to":"greenier"}');
+    fs.writeFileSync('_test.js', 'module.exports = {"invoice": 83, "date":false,"bill-to":"ben"};');
   });
 
   it('should parse yaml config', function() {
@@ -31,7 +32,10 @@ describe('Parser', function() {
                 .opts();
 
     assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
-    assert.deepEqual(opts, {"./_test.yaml": {invoice: 34843, date: true, "bill-to": "ben"}}, "opts shouldn't be "+JSON.stringify(opts));
+
+    var op = {};
+    op[pathResolver("./_test.yaml")] = {invoice: 34843, date: true, "bill-to": "ben"};
+    assert.deepEqual(opts, op, "opts shouldn't be "+JSON.stringify(opts));
   });
 
   it('should parse json config', function() {
@@ -40,8 +44,11 @@ describe('Parser', function() {
     var opts =  conf.parse('./_test.json')
                 .opts();
 
+    var op2 = {};
+    op2[pathResolver("./_test.json")] = {invoice: 34843, date: false, "bill-to": "greenier"};
+
     assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
-    assert.deepEqual(opts, {"./_test.json": {invoice: 34843, date: true, "bill-to": "ben"}}, "opts shouldn't be "+JSON.stringify(opts));
+    assert.deepEqual(opts, op2, "opts shouldn't be "+JSON.stringify(opts));
   });
 
   it('should parse js config', function() {
@@ -50,8 +57,11 @@ describe('Parser', function() {
     var opts =  conf.parse('./_test.js')
                 .opts();
 
+    var op3 = {};
+    op3[pathResolver("./_test.js")] = {invoice: 83, date: false, "bill-to": "ben"};
+
     assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
-    assert.deepEqual(opts, {"./_test.js": {invoice: 34843, date: true, "bill-to": "ben"}}, "opts shouldn't be "+JSON.stringify(opts));
+    assert.deepEqual(opts, op3, "opts shouldn't be "+JSON.stringify(opts));
   });
 
   it('should parse multiple config', function() {
@@ -62,12 +72,13 @@ describe('Parser', function() {
                 .parse('./_test.js')
                 .opts();
 
+    var op = {};
+    op[pathResolver("./_test.yaml")] = {invoice: 34843, date: true, "bill-to": "ben"};
+    op[pathResolver("./_test.json")] = {invoice: 34843, date: false, "bill-to": "greenier"};
+    op[pathResolver("./_test.js")] = {invoice: 83, date: false, "bill-to": "ben"};
+
     assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
-    assert.deepEqual(opts, {
-      "./_test.yaml": {invoice: 34843, date: true, "bill-to": "ben"},
-      "./_test.json": {invoice: 34843, date: true, "bill-to": "ben"},
-      "./_test.js": {invoice: 34843, date: true, "bill-to": "ben"}
-    }, "opts shouldn't be "+JSON.stringify(opts));
+    assert.deepEqual(opts, op, "opts shouldn't be "+JSON.stringify(opts));
   });
 
   it('should clear opts() after calling it', function() {
@@ -75,10 +86,10 @@ describe('Parser', function() {
 
     var opts =  conf.parse('./_test.yaml')
                 .opts();
+    var op = {};
+    op[pathResolver("./_test.yaml")] = {invoice: 34843, date: true, "bill-to": "ben"};
 
-    assert.deepEqual(opts, {
-      "./_test.yaml": {invoice: 34843, date: true, "bill-to": "ben"}
-    }, "opts shouldn't be "+JSON.stringify(opts));
+    assert.deepEqual(opts, op, "opts shouldn't be "+JSON.stringify(opts));
 
     var opts2 = conf.opts();
     assert.deepEqual(opts2, {}, "opts2 shouldn't be "+JSON.stringify(opts2));
@@ -90,10 +101,15 @@ describe('Parser', function() {
     var opts =  conf.parse('./_test.yaml')
                 .opts();
 
-    assert.deepEqual(opts, {"./_test.yaml": {invoice: 34843, date: true, "bill-to": "ben"}}, "opts shouldn't be "+JSON.stringify(opts));
+    var op = {};
+    op[pathResolver("./_test.yaml")] = {invoice: 34843, date: true, "bill-to": "ben"};
+    var op2 = {};
+    op2[pathResolver("./_test.json")] = {invoice: 34843, date: false, "bill-to": "greenier"};
+
+    assert.deepEqual(opts, op, "opts shouldn't be "+JSON.stringify(opts));
 
     var opts2 = conf.parse('./_test.json').opts();
-    assert.deepEqual(opts2, {"./_test.json": {invoice: 34843, date: true, "bill-to": "ben"}}, "opts shouldn't be "+JSON.stringify(opts2));
+    assert.deepEqual(opts2, op2, "opts2 shouldn't be "+JSON.stringify(opts2));
   });
 
   it('should throw if file doesn\'t exist', function() {

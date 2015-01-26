@@ -1,6 +1,6 @@
 {
   "name": "lconf",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "parse local configuration files of various types",
   "main": "index.js",
   "scripts": {
@@ -30,9 +30,11 @@
   },
   "homepage": "https://github.com/bengreenier/lconf",
   "devDependencies": {
-    "mocha": "^2.1.0"
+    "mocha": "^2.1.0",
+    "path-resolver": "0.0.2"
   },
   "dependencies": {
-    "js-yaml": "^3.2.5"
+    "js-yaml": "^3.2.5",
+    "path-resolver": "0.0.2"
   }
 }
