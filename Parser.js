@@ -25,22 +25,36 @@ module.exports = function Parser() {
     return self;
   };
 
+  // clone an object
+  function clone(obj) {
+    if (obj instanceof Object) {
+      copy = {};
+      for (var attr in obj) {
+          if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+      }
+      return copy;
+    } else {
+      return obj;
+    }
+  }
+
   // Does the actual file parsing
   function load(file) {
     if (path.extname(file) === ".yaml" || path.extname(file) === ".yml") {
       return yaml.safeLoad(fs.readFileSync(file));
 
     } else if (path.extname(file) === ".json") {
-      return require(file);
+      var r = JSON.parse(fs.readFileSync(file));
+      return r;
 
     } else if (path.extname(file) === ".js") {
       var obj = require(file);
-
+      
       if (typeof(obj) !== "object") {
         throw {error: "needs to export object, not "+typeof(obj), file: file};
 
       } else {
-        return obj;
+        return clone(obj);
       }
     } else {
       throw {error: path+" has invalid extension: "+path.extname(file)};
@@ -57,7 +71,7 @@ module.exports = function Parser() {
 
         // use pathResolver to normalize/check existence
         if ((path = pathResolver(path)) !== false) {
-          res[path] = load(path);  
+          res[path] = load(path);
         } else {
           throw new Error("path "+self._paths[i]+" is invalid");
         }
