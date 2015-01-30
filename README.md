@@ -5,8 +5,10 @@ parse local configuration files of various types. __currently supported filetype
 
 lconf supports three methods:
 
-  + __parse(file:string)__:  
-    parses a configuration file located at `file`. note: `file` must be a path `fs` recognizes, so __be sure to use `./`__ when needed.
+  + __parse(file:string, [regex:RegExp])__:  
+    parses a configuration file located at `file`. note: if `file` is relative, it will be resolved from `process.cwd()`. if `file` is a directory, all
+    files inside the directory will be included. if `regex` is given, `file` (if actual file) or all files in directory (if `file` is a directory) will
+    be compared against regex, and added if `regex.test(filePath)` returns `true`.
 
   + __suppress(bool:boolean[default=true])__:  
     toggles throwing of exceptions when parsing. using `suppress()` will prevent throwing of errors.

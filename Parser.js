@@ -17,11 +17,28 @@ module.exports = function Parser() {
     return self;
   };
 
-  self.parse = function(path) {
-    // Note: currently this means we only support absolute paths
-    // no regex, must include ./ if same dir, no directory names
-    self._paths.push(path);
+  self.parse = function(fpath, regex) {
+    var paths;
+    
+    if (fs.existsSync(fpath) && fs.statSync(fpath).isDirectory()) {
+      paths = fs.readdirSync(fpath);
+      for (var i = 0 ; i < paths.length; i++) {
+        paths[i] = fpath+path.sep+paths[i];
+      }
+    } else {
+      paths = [fpath];
+    }
 
+    for (var i = 0 ; i < paths.length; i++) {
+      if (regex instanceof RegExp) {
+        if (regex.test(paths[i])) {
+          self._paths.push(paths[i]);
+        }
+      } else {
+        self._paths.push(paths[i]);
+      }
+    }
+    
     return self;
   };
 
@@ -71,7 +88,11 @@ module.exports = function Parser() {
 
         // use pathResolver to normalize/check existence
         if ((path = pathResolver(path)) !== false) {
-          res[path] = load(path);
+          if (!(path instanceof Array)) path = [path];
+
+          for (var j = 0; j < path.length; j++) {
+              res[path[j]] = load(path[j]);
+          }
         } else {
           throw new Error("path "+self._paths[i]+" is invalid");
         }
