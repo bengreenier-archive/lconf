@@ -18,11 +18,19 @@ describe('Parser', function() {
       fs.unlinkSync('_test.yaml');
       fs.unlinkSync('_test.json');
       fs.unlinkSync('_test.js');
+
+      fs.unlinkSync('./_dir/_test.js');
+      fs.unlinkSync('./_dir/_test.json');
+      fs.rmdirSync('./_dir');
     } catch (e){}
     
     fs.writeFileSync('_test.yaml', "invoice: 34843\r\ndate   : true\r\nbill-to: ben");
     fs.writeFileSync('_test.json', '{"invoice": 34843, "date":false,"bill-to":"greenier"}');
     fs.writeFileSync('_test.js', 'module.exports = {"invoice": 83, "date":false,"bill-to":"ben"};');
+
+    fs.mkdirSync('./_dir');
+    fs.writeFileSync('./_dir/_test.json', '{"invoice": 34843, "date":false,"bill-to":"greenier", "bool":true}');
+    fs.writeFileSync('./_dir/_test.js', 'module.exports = {"invoice": 83, "date":false,"bill-to":"ben","bool":true};');
   });
 
   it('should parse yaml config', function() {
@@ -51,10 +59,32 @@ describe('Parser', function() {
     assert.deepEqual(opts, op2, "opts shouldn't be "+JSON.stringify(opts));
   });
 
+  it('shouldn\'t parse json config if regex /.?\\.js$/', function() {
+    var conf =  lconf();
+    
+    var opts =  conf.parse('./_test.json', /.?\.js$/)
+                .opts();
+
+    assert.deepEqual(opts, {}, "opts shouldn't be "+JSON.stringify(opts));
+  });
+
   it('should parse js config', function() {
     var conf =  lconf();
 
     var opts =  conf.parse('./_test.js')
+                .opts();
+
+    var op3 = {};
+    op3[pathResolver("./_test.js")] = {invoice: 83, date: false, "bill-to": "ben"};
+
+    assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
+    assert.deepEqual(opts, op3, "opts shouldn't be "+JSON.stringify(opts));
+  });
+
+  it('should parse js config if regex /.?\\.js$/', function() {
+    var conf =  lconf();
+
+    var opts =  conf.parse('./_test.js', /.?\.js$/)
                 .opts();
 
     var op3 = {};
@@ -153,16 +183,49 @@ describe('Parser', function() {
     }, "shouldn't throw exception");
   });
 
-  it('shouldn\'t throw if file has unsupported extension, and suppress() is used', function() {
+  it('shouldn\'t throw if file has unsupported extension, and suppress is used', function() {
     var conf = lconf();
     assert.doesNotThrow(function() {
       conf.suppress().parse("nonsense.pie").opts();
     }, "shouldn't throw exception");
   });
 
+  it('should support directories', function() {
+    var conf =  lconf();
+
+    var opts =  conf.parse('./_dir/')
+                .opts();
+
+    var op3 = {};
+    op3[pathResolver("./_dir/_test.js")] = {invoice: 83, date: false, "bill-to": "ben", "bool":true};
+    op3[pathResolver("./_dir/_test.json")] = {invoice: 34843, date: false, "bill-to": "greenier", "bool":true};
+
+
+    assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
+    assert.deepEqual(opts, op3, "opts shouldn't be "+JSON.stringify(opts));
+  });
+
+  it('should support directories with regex', function() {
+    var conf =  lconf();
+
+    var opts =  conf.parse('./_dir/', /.?\.js$/)
+                .opts();
+
+    var op3 = {};
+    op3[pathResolver("./_dir/_test.js")] = {invoice: 83, date: false, "bill-to": "ben", "bool":true};
+
+
+    assert.equal(typeof(opts), "object", "opts shouldn't be type: "+typeof(opts));
+    assert.deepEqual(opts, op3, "opts shouldn't be "+JSON.stringify(opts));
+  });
+
   after(function() {
     fs.unlinkSync('_test.yaml');
     fs.unlinkSync('_test.json');
     fs.unlinkSync('_test.js');
+
+    fs.unlinkSync('./_dir/_test.js');
+    fs.unlinkSync('./_dir/_test.json');
+    fs.rmdirSync('./_dir');
   });
 });
